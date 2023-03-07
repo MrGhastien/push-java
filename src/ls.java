@@ -2,15 +2,15 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ls implements command {
+public class ls implements Command {
 
     public int execute(String[] input) {
-        File f = new File(Main.currPath);
+        File f = new File(Main.context().currPath);
 
 
 
         for (String s : f.list()) {
-            File currF = new File(Main.currPath + "\\" + s);
+            File currF = new File(Main.context().currPath + "\\" + s);
             Date date = new Date(currF.lastModified());
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             String dateStr = format.format(date);
