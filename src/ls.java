@@ -13,20 +13,36 @@ public class ls implements command {
     public static final String ANSI_PURPLE = "\u001B[35m";
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
-    public int digitNb(File currF) {
-        long size = currF.length();
-        String sizeStr = String.valueOf(size);
+
+    /**
+     * Renturn the number of digit of a number
+     * @param nb : the number that you want to know the number of digit
+     * @return the number of digit
+     */
+    public int digitNb(long nb) {
+        String sizeStr = String.valueOf(nb);
         int digitNb = sizeStr.length();
         return digitNb;
     }
 
-    public String dateFormat(File currF) {
-        Date date = new Date(currF.lastModified());
+    /**
+     * Return a date in a dd-MM-yyyy HH:mm:ss format from a time in ms
+     * @param time : the time in ms that you want to convert into the dd-MM-yyyy HH:mm:ss format
+     *             (it is 01/01/1970 12:00:00 AM + time)
+     * @return the date in a dd-MM-yyyy HH:mm:ss format
+     */
+
+    public String dateFormat(long time) {
+        Date date = new Date(time);
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String strDate = formatter.format(date);
         return strDate;
     }
 
+    /**
+     * Print spaces
+     * @param nb : the number of space that you want to print
+     */
     public void spacing(int nb)
     {
         while (nb != 0)
@@ -36,13 +52,19 @@ public class ls implements command {
         }
     }
 
+    /**
+     * Print the content of a directory
+     * @param input : the potential args of the command
+     * @return 0 if the command is executed correctly -1 else
+     */
     public int execute(String[] input) {
+
         File f = new File(Main.currPath);
         int max = -1;
         for (String s : f.list()) {
 
             File currF = new File(Main.currPath + "\\" + s);
-            int digitNb = digitNb(currF);
+            int digitNb = digitNb(currF.length());
             if (digitNb > max) {
                 max = digitNb;
             }
@@ -52,11 +74,17 @@ public class ls implements command {
         System.out.print("Last Modified" + "        " + "Size" );
         spacing(max - 3);
         System.out.println("Execute" + " " + "Read" + "    " + "Write" + " " + "Name");
+
+        String[] docList = f.list();
+        if(docList == null) {
+            System.out.println("No files in this directory");
+            return -1;
+        }
         for (String s : f.list()) {
 
             File currF = new File(Main.currPath + "\\" + s);
-            String dateStr = dateFormat(currF);
-            int digitNb = digitNb(currF);
+            String dateStr = dateFormat(currF.lastModified());
+            int digitNb = digitNb(currF.length());
 
             boolean isDir = currF.isDirectory();
             boolean isHHide = currF.isHidden();

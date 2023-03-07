@@ -11,9 +11,9 @@ public class Main {
         currPath = System.getProperty("user.home");
 
         //commands.put("ls", new ls());
-        command cmd = new ls();
+        command cmd = new mkdir();
 
-        cmd.execute(new String[]{"ls"});
+        cmd.execute(new String[]{"mkdir","testDir"});
 
 
     }
