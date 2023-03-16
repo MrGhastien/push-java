@@ -1,6 +1,7 @@
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 public class ls implements Command {
 
@@ -58,6 +59,24 @@ public class ls implements Command {
      * @return 0 if the command is executed correctly -1 else
      */
     public int execute(String[] input) {
+        if(input.length > 2) {
+            System.err.println("Too many arguments");
+            return -1;
+        }
+        if(input.length > 1) {
+            if (input[1].contains("$")) {
+                String[] env = input[1].split("\\$");
+                String envName = env[1];
+                Variable var = Main.context().envVariables.get(envName);
+
+                if (var == null) {
+                    System.out.println("This environment variable doesn't exist");
+                    return -1;
+                }
+                input[1] = var.value;
+            }
+        }
+
         Context ctx = Main.context();
         File f = new File(ctx.currPath);
         int max = -1;

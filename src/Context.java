@@ -14,6 +14,12 @@ public class Context {
     public boolean shouldExit;
 
     /**
+     * Holds the environment variables of the shell.
+     */
+    public Map<String, Variable> envVariables = new HashMap<>();
+
+
+    /**
      * A list of commands. Commands are programs built into the shell.
      */
     public final Map<String, Command> builtinCommands;
