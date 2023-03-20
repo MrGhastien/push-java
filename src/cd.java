@@ -1,18 +1,20 @@
 import java.io.File;
+import java.util.Objects;
 
-public class cd implements command{
+public class cd implements Command {
+    Context ctx = Main.context();
     public int execute(String[] input) {
-        if(input[1] == "..")
+        if(Objects.equals(input[1], ".."))
         {
-            File f = new File(Main.currPath);
-            Main.currPath = f.getParent();
+            File f = new File(ctx.currPath);
+            ctx.currPath = f.getParent();
         }
         else
         {
-            File f = new File(Main.currPath + "\\" + input[1]);
+            File f = new File(ctx.currPath + "\\" + input[1]);
             if(f.isDirectory())
             {
-                Main.currPath = Main.currPath + "\\" + input[1];
+                ctx.currPath = ctx.currPath + "\\" + input[1];
                 return 0;
             }
             else

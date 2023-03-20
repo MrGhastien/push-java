@@ -1,9 +1,9 @@
 import java.io.File;
 import java.util.Objects;
 
-public class rm implements command{
+public class rm implements Command {
     public int execute(String[] input) {
-        File f = new File(Main.currPath + "\\" + input[1]);
+        File f = new File(Main.context().currPath + "\\" + input[1]);
         if (!Objects.equals(input[1], "-r") && f.isDirectory()) {
             System.out.println("This is a directory use -r to delete it");
             return -1;

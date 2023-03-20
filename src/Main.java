@@ -8,12 +8,14 @@ public class Main {
         ctx = new Context(System.in);
         ctx.currPath = System.getProperty("user.home");
 
-        ctx.registerCommand("exit", Builtins::exit);
+        registerCommands();
 
         String str;
         String[] splitStr;
         int retCode;
         while(!ctx.shouldExit) {
+            System.err.flush();
+            prompt();
             str = ctx.getReader().readLine();
             splitStr = str.split(" ");
 
@@ -27,5 +29,13 @@ public class Main {
 
     public static Context context() {
         return ctx;
+    }
+
+    private static void registerCommands() {
+        ctx.registerCommand("exit", Builtins::exit);
+    }
+
+    private static void prompt() {
+        System.out.print("[" + ctx.currPath + "] $> ");
     }
 }
