@@ -76,12 +76,12 @@ public class Context {
             process = pb.start();
             childProcesses.put(process.pid(), process);
             process.waitFor();
+            childProcesses.remove(process.pid());
             retCode = process.exitValue();
         } catch (IOException e) {
-            System.err.println("Could not run program \"" + programPath + "\" : " + e.getMessage());
-            return Integer.MIN_VALUE;
+            IO.printlnErr("Could not run program \"" + programPath + "\" : Program not found.");
         } catch (InterruptedException e) {
-            System.err.println("Program \"" + programPath + "\" [" + process.pid() + "] was interrupted.");
+            IO.printlnErr("Program \"" + programPath + "\" [" + process.pid() + "] was interrupted.");
         }
 
         return retCode;

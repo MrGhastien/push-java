@@ -8,25 +8,14 @@ public class Main {
         ctx = new Context(System.in);
         ctx.currPath = System.getProperty("user.home");
 
-        ctx.registerCommand("exit", Builtins::exit);
-        ctx.registerCommand("rm", Builtins::rm);
-        ctx.registerCommand("mkdir", Builtins::mkdir);
-        ctx.registerCommand("cd", Builtins::cd);
-        ctx.registerCommand("ls", new ls());
-        ctx.registerCommand("cat", Builtins::cat);
-        ctx.registerCommand("pwd", Builtins::pwd);
-        ctx.registerCommand("echo", Builtins::echo);
-        ctx.registerCommand("cp", Builtins::cp);
-        ctx.registerCommand("mv", Builtins::mv);
-        ctx.registerCommand("clear", Builtins::clear);
-        ctx.registerCommand("unset", Builtins::unset);
-
-
+        registerCommands();
 
         String str;
         String[] splitStr;
         int retCode;
         while(!ctx.shouldExit) {
+            System.err.flush();
+            prompt();
             str = ctx.getReader().readLine();
 
             if (str.contains("="))
@@ -50,11 +39,29 @@ public class Main {
                 continue;
 
             retCode = ctx.runProgram(splitStr);
-
         }
     }
 
     public static Context context() {
         return ctx;
+    }
+
+    private static void registerCommands() {
+        ctx.registerCommand("exit", Builtins::exit);
+        ctx.registerCommand("rm", Builtins::rm);
+        ctx.registerCommand("mkdir", Builtins::mkdir);
+        ctx.registerCommand("cd", Builtins::cd);
+        ctx.registerCommand("ls", new ls());
+        ctx.registerCommand("cat", Builtins::cat);
+        ctx.registerCommand("pwd", Builtins::pwd);
+        ctx.registerCommand("echo", Builtins::echo);
+        ctx.registerCommand("cp", Builtins::cp);
+        ctx.registerCommand("mv", Builtins::mv);
+        ctx.registerCommand("clear", Builtins::clear);
+        ctx.registerCommand("unset", Builtins::unset);
+    }
+
+    private static void prompt() {
+        System.out.print("[" + ctx.currPath + "] $> ");
     }
 }
