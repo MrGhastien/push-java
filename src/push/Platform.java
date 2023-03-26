@@ -1,3 +1,5 @@
+package push;
+
 public class Platform {
 
     public static char pathSeparator() {

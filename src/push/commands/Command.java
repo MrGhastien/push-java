@@ -1,4 +1,4 @@
-package commands;
+package push.commands;
 
 public interface Command {
 

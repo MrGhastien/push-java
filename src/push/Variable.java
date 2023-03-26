@@ -1,3 +1,5 @@
+package push;
+
 public class Variable {
 
     String name;
