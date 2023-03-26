@@ -5,10 +5,10 @@ public class Main {
     private static Context ctx;
 
     public static void main(String[] args) throws IOException {
-        ctx = new Context(System.in);
+        ctx = new Context(System.in, args);
         ctx.currPath = System.getProperty("user.home");
 
-        registerCommands();
+        registerBuiltins();
 
         String str;
         String[] splitStr;
@@ -34,7 +34,7 @@ public class Main {
                 continue;
             }
 
-            retCode = ctx.runCommand(splitStr);
+            retCode = ctx.runBuiltin(splitStr);
             if(retCode != Integer.MIN_VALUE)
                 continue;
 
@@ -46,19 +46,19 @@ public class Main {
         return ctx;
     }
 
-    private static void registerCommands() {
-        ctx.registerCommand("exit", Builtins::exit);
-        ctx.registerCommand("rm", Builtins::rm);
-        ctx.registerCommand("mkdir", Builtins::mkdir);
-        ctx.registerCommand("cd", Builtins::cd);
-        ctx.registerCommand("ls", new ls());
-        ctx.registerCommand("cat", Builtins::cat);
-        ctx.registerCommand("pwd", Builtins::pwd);
-        ctx.registerCommand("echo", Builtins::echo);
-        ctx.registerCommand("cp", Builtins::cp);
-        ctx.registerCommand("mv", Builtins::mv);
-        ctx.registerCommand("clear", Builtins::clear);
-        ctx.registerCommand("unset", Builtins::unset);
+    private static void registerBuiltins() {
+        ctx.registerBuiltin("exit", Builtins::exit);
+        ctx.registerBuiltin("rm", Builtins::rm);
+        ctx.registerBuiltin("mkdir", Builtins::mkdir);
+        ctx.registerBuiltin("cd", Builtins::cd);
+        ctx.registerBuiltin("ls", new ls());
+        ctx.registerBuiltin("cat", Builtins::cat);
+        ctx.registerBuiltin("pwd", Builtins::pwd);
+        ctx.registerBuiltin("echo", Builtins::echo);
+        ctx.registerBuiltin("cp", Builtins::cp);
+        ctx.registerBuiltin("mv", Builtins::mv);
+        ctx.registerBuiltin("clear", Builtins::clear);
+        ctx.registerBuiltin("unset", Builtins::unset);
     }
 
     private static void prompt() {
