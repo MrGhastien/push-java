@@ -71,7 +71,7 @@ public class Context {
      * @return 0 if the command resulted in a success, Integer.MIN_VALUE if the command is unknown,
      * other values when the command failed.
      */
-    public int runBuiltin(String[] args) {
+    public int runBuiltin(String[] args, boolean async) {
         BuiltinCommand func = builtinCommands.get(args[0]);
         if(func == null)
             return Integer.MIN_VALUE;
@@ -82,12 +82,9 @@ public class Context {
 
 
 
-    public int runProgram(String programPath, String[] args) {
-        String[] cmd = new String[args.length + 1];
-        cmd[0] = programPath;
-        System.arraycopy(args, 0, cmd, 1, cmd.length - 1);
+    public int runProgram(String[] args, boolean async) {
 
-        ProcessBuilder pb = new ProcessBuilder(cmd);
+        ProcessBuilder pb = new ProcessBuilder(args);
         pb.inheritIO();
         pb.directory(new File(Main.context().currPath));
 
@@ -97,13 +94,18 @@ public class Context {
             process = pb.start();
             lastProcId = process.pid();
             childProcesses.put(process.pid(), process);
-            process.waitFor();
-            childProcesses.remove(process.pid());
-            retCode = process.exitValue();
+            if(!async) {
+                process.waitFor();
+                childProcesses.remove(process.pid());
+                retCode = process.exitValue();
+            } else {
+                retCode = 0;
+            }
+
         } catch (IOException e) {
-            IO.printlnErr("Could not run program \"" + programPath + "\" : Program not found.");
+            IO.printlnErr("Could not run program \"" + args[0] + "\" : Program not found.");
         } catch (InterruptedException e) {
-            IO.printlnErr("Program \"" + programPath + "\" [" + process.pid() + "] was interrupted.");
+            IO.printlnErr("Program \"" + args[0] + "\" [" + process.pid() + "] was interrupted.");
         }
         previousRetCode = retCode;
         return retCode;

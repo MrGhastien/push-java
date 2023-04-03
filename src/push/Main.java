@@ -1,6 +1,11 @@
 package push;
 
 import java.io.IOException;
+import java.util.List;
+
+import push.commands.interpreter.Indexer;
+import push.commands.interpreter.Parser;
+import push.commands.interpreter.Token;
 
 public class Main {
 
@@ -20,6 +25,19 @@ public class Main {
             prompt();
             str = ctx.getReader().readLine();
 
+
+            List<Token> tokens;
+            tokens = Indexer.index(str);
+            for (Token t : tokens) {
+                System.out.print("'" + t.toString() + "' ");
+            }
+            System.out.println();
+            for (Token t : tokens) {
+                System.out.print("'" + t.getIdentifier().name() + "' ");
+            }
+            System.out.println();
+
+            /*
             if (str.contains("="))
             {
                 String[] split = str.split("=");
@@ -35,12 +53,14 @@ public class Main {
                 ctx.envVariables.get(splitStr[1]).readOnly = true;
                 continue;
             }
-
+            
+            
             retCode = ctx.runBuiltin(splitStr);
             if(retCode != Integer.MIN_VALUE)
                 continue;
 
             retCode = ctx.runProgram(splitStr);
+            */
         }
     }
 

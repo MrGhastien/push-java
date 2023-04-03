@@ -15,9 +15,5 @@ run: $(CLASSES)
 $(CLASSES): $(SRCS)
 	@javac -d ./$(OUTDIR) -cp ./$(OUTDIR) $^
 
-./$(OUTDIR)/%.class: ./$(SRCDIR)/%.java
-	@echo -e "\e[33mCompiling Java file '$<'...\e[0m"
-	@javac -d ./$(OUTDIR) -cp ./$(OUTDIR) $<
-
 clean:
 	rm -rf ./$(OUTDIR)/*
