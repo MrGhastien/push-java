@@ -5,6 +5,7 @@ public class Main {
     private static Context ctx;
 
     public static void main(String[] args) throws IOException {
+        System.out.println(System.getProperty("os.name"));
         ctx = new Context(System.in);
         ctx.currPath = System.getProperty("user.home");
 

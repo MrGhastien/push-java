@@ -1,0 +1,1 @@
+C:\Users\alexis\.jdks\openjdk-19.0.2\bin\java.exe -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath C:\Users\alexis\Documents\dorset_college\OOP\programms_exercises\push-java\out\production\push-java Main
