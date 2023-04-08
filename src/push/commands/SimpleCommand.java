@@ -21,11 +21,7 @@ public class SimpleCommand implements Command {
     public int execute() {
         String[] finalArgs = getArgs();
         Context ctx = Main.context();
-        int retCode = ctx.runBuiltin(finalArgs, async);
-        if(retCode != Integer.MIN_VALUE)
-            return retCode;
-
-        return ctx.runProgram(finalArgs, async);
+        return ctx.run(finalArgs, isAsync(),);
     }
 
     public void addArg(Lazy<String> arg) {

@@ -1,10 +1,8 @@
 package push;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import push.commands.interpreter.Streams;
+
+import java.io.*;
 import java.util.*;
 
 /**
@@ -34,6 +32,8 @@ public class Context {
     private final BufferedReader reader;
 
     private final Map<Long, Process> childProcesses;
+
+    private final Map<Integer,Thread> threads = new HashMap<>();
 
     public Context(InputStream in, String[] params) {
         shouldExit = false;
@@ -65,24 +65,38 @@ public class Context {
         builtinCommands.put(name, func);
     }
 
+    public int run(String[] args, boolean async, OutputStream out, InputStream in) {
+        int retCode = runBuiltin(args, async, out, in);
+        if(retCode == Integer.MIN_VALUE)
+            retCode = runProgram(args, async, out, in);
+        previousRetCode = retCode;
+        return retCode;
+    }
+
     /**
      * Runs the given command with arguments.
      * @param args The command name and arguments. The first argument is the command name.
      * @return 0 if the command resulted in a success, Integer.MIN_VALUE if the command is unknown,
      * other values when the command failed.
      */
-    public int runBuiltin(String[] args, boolean async) {
+    public int runBuiltin(String[] args, boolean async, Streams streams) {
         BuiltinCommand func = builtinCommands.get(args[0]);
+        System.setOut((PrintStream) streams.in);
+        System.setIn(streams.out);
         if(func == null)
             return Integer.MIN_VALUE;
-
-        previousRetCode = func.execute(args);
-        return previousRetCode;
+        if(async) {
+            Thread t = new Thread(() -> func.execute(args));
+            threads.put(threads.size()+1,t);
+            t.start();
+            return 0;
+        }
+        return func.execute(args);
     }
 
 
 
-    public int runProgram(String[] args, boolean async) {
+    public int runProgram(String[] args, boolean async, Streams streams) {
 
         ProcessBuilder pb = new ProcessBuilder(args);
         pb.inheritIO();
@@ -92,6 +106,8 @@ public class Context {
         int retCode = Integer.MIN_VALUE;
         try {
             process = pb.start();
+            streams.out = process.getInputStream();
+            streams.in = process.getOutputStream();
             lastProcId = process.pid();
             childProcesses.put(process.pid(), process);
             if(!async) {
@@ -107,7 +123,6 @@ public class Context {
         } catch (InterruptedException e) {
             IO.printlnErr("Program \"" + args[0] + "\" [" + process.pid() + "] was interrupted.");
         }
-        previousRetCode = retCode;
         return retCode;
     }
 
@@ -118,4 +133,6 @@ public class Context {
     public List<String> getParameters() {
         return params;
     }
+}
+
 }

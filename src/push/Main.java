@@ -3,6 +3,7 @@ package push;
 import java.io.IOException;
 import java.util.List;
 
+import push.commands.Command;
 import push.commands.interpreter.Indexer;
 import push.commands.interpreter.Parser;
 import push.commands.interpreter.Token;
@@ -36,7 +37,8 @@ public class Main {
                 System.out.print("'" + t.getIdentifier().name() + "' ");
             }
             System.out.println();
-
+            Command cmd = Parser.parse(tokens);
+            System.out.println(cmd.toString());
             /*
             if (str.contains("="))
             {

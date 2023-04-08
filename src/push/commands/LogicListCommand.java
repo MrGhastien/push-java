@@ -9,13 +9,9 @@ public class LogicListCommand implements Command, CommandList {
     private final LinkedList<Boolean> orOperators;
     private boolean async;
 
-    public LogicListCommand(Command firstCommand, boolean or) {
-        if (firstCommand == null)
-            throw new IllegalArgumentException();
+    public LogicListCommand() {
         this.subCommands = new LinkedList<>();
-        this.subCommands.add(firstCommand);
         this.orOperators = new LinkedList<>();
-        orOperators.add(or);
         this.async = false;
     }
 
@@ -80,7 +76,7 @@ public class LogicListCommand implements Command, CommandList {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder(subCommands.size() + "L[ ");
+        StringBuilder builder = new StringBuilder(subCommands.size() + "L{ ");
         for (int i = 0; i < subCommands.size() - 1; i++) {
             Command c = subCommands.get(i);
             boolean or = orOperators.get(i);
@@ -92,7 +88,7 @@ public class LogicListCommand implements Command, CommandList {
             }
         }
         builder.append(subCommands.getLast());
-        builder.append(" ]");
+        builder.append(" }");
         if(async)
             builder.append(" &");
         return builder.toString();

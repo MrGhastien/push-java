@@ -50,14 +50,16 @@ public class PipelineCommand implements Command, CommandList {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("[ ");
+        StringBuilder builder = new StringBuilder("P( ");
         for(Command c : subCommands) {
             builder.append(c.toString());
             if(!c.isAsync()) {
-                builder.append("; ");
+                builder.append(" | ");
             }
         }
-        builder.append(']');
+        builder.append(')');
+        if(isAsync())
+            builder.append(" &");
         return builder.toString();
     }
 }

@@ -53,7 +53,7 @@ public class SeqListCommand implements Command, CommandList {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(subCommands.size());
-        builder.append("[ ");
+        builder.append("S[ ");
         for(Command c : subCommands) {
             builder.append(c.toString());
             if(!c.isAsync()) {
