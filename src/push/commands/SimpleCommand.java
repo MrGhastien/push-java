@@ -2,6 +2,7 @@ package push.commands;
 
 import push.Context;
 import push.Main;
+import push.commands.interpreter.Streams;
 import push.util.Lazy;
 
 import java.util.LinkedList;
@@ -18,10 +19,10 @@ public class SimpleCommand implements Command {
     }
 
     @Override
-    public int execute() {
+    public int execute(Streams streams) {
         String[] finalArgs = getArgs();
         Context ctx = Main.context();
-        return ctx.run(finalArgs, isAsync(),);
+        return ctx.run(finalArgs, isAsync(),streams);
     }
 
     public void addArg(Lazy<String> arg) {

@@ -1,5 +1,8 @@
 package push.commands.interpreter;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,6 +105,7 @@ public final class Parser {
     }
 
     public static String substitute(String expression) {
+        //TODO : First case not done
         expression = expression.substring(1, expression.length() - 1);
 
         if (expression.startsWith("((")) {
@@ -109,10 +113,22 @@ public final class Parser {
             return "";
         }
 
-        else if (expression.startsWith("(")) {
+        else if (expression.startsWith("(") || expression.startsWith("`")) {
             expression = expression.substring(1, expression.length() - 2);
             Command command = parse(Indexer.index(expression));
-            return "";
+            Streams streams = new Streams();
+            command.execute(streams);
+            BufferedReader in = new BufferedReader(new InputStreamReader(streams.out));
+            String text = "";
+            try {
+                int res = 0;
+                while ((res = in.read()) != -1) {
+                    text += (char) res;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return text;
         }
 
         else if (expression.startsWith("{")) {

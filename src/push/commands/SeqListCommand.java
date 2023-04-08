@@ -1,5 +1,7 @@
 package push.commands;
 
+import push.commands.interpreter.Streams;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,11 +15,11 @@ public class SeqListCommand implements Command, CommandList {
     }
 
     @Override
-    public int execute() {
+    public int execute(Streams streams) {
         int retCode = 0;
         for(int i = 0; i < subCommands.size(); i++) {
             Command c = subCommands.get(i);
-            retCode = c.execute();
+            retCode = c.execute(streams);
         }
         return retCode;
     }

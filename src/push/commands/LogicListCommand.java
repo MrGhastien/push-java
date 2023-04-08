@@ -1,5 +1,7 @@
 package push.commands;
 
+import push.commands.interpreter.Streams;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,8 +18,8 @@ public class LogicListCommand implements Command, CommandList {
     }
 
     @Override
-    public int execute() {
-        int retCode = subCommands.get(0).execute();
+    public int execute(Streams streams) {
+        int retCode = subCommands.get(0).execute(streams);
         for (int i = 1; i < subCommands.size(); i++) {
             // Execute next command only if :
             // previousCode = 0 & operator = AND (false in 'orOperators' list)
@@ -25,7 +27,7 @@ public class LogicListCommand implements Command, CommandList {
             if ((retCode == 0) ^ orOperators.get(i - 1))
                 continue;
 
-            retCode = subCommands.get(i).execute();
+            retCode = subCommands.get(i).execute(streams);
         }
         return retCode;
     }

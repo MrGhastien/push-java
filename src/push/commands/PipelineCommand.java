@@ -1,5 +1,7 @@
 package push.commands;
 
+import push.commands.interpreter.Streams;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -15,7 +17,7 @@ public class PipelineCommand implements Command, CommandList {
     }
 
     @Override
-    public int execute() {
+    public int execute(Streams streams) {
         int retCode = 0;
         for(Command c : subCommands) {
 

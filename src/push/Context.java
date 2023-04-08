@@ -65,10 +65,10 @@ public class Context {
         builtinCommands.put(name, func);
     }
 
-    public int run(String[] args, boolean async, OutputStream out, InputStream in) {
-        int retCode = runBuiltin(args, async, out, in);
+    public int run(String[] args, boolean async, Streams streams) {
+        int retCode = runBuiltin(args, async, streams);
         if(retCode == Integer.MIN_VALUE)
-            retCode = runProgram(args, async, out, in);
+            retCode = runProgram(args, async, streams);
         previousRetCode = retCode;
         return retCode;
     }
@@ -135,4 +135,4 @@ public class Context {
     }
 }
 
-}
+

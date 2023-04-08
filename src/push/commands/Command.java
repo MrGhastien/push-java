@@ -1,5 +1,7 @@
 package push.commands;
 
+import push.commands.interpreter.Streams;
+
 /**
  * Represents a command.
  */
@@ -9,7 +11,7 @@ public interface Command {
      * Runs the command.
      * @return The return code of the command
      */
-    int execute();
+    int execute(Streams streams);
 
     /**
      * Indicates if this command is run asynchronously (i.e. the shell does not wait for the

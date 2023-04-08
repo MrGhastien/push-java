@@ -1,5 +1,7 @@
 package push.commands;
 
+import push.commands.interpreter.Streams;
+
 public class SubshellCommand implements Command {
 
     private final Command cmd;
@@ -9,7 +11,7 @@ public class SubshellCommand implements Command {
     }
 
     @Override
-    public int execute() {
+    public int execute(Streams streams) {
         //TODO: Launch push again and make it run the command
         return 0;
     }
