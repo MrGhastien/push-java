@@ -81,6 +81,8 @@ public class Context {
      */
     public int runBuiltin(String[] args, boolean async, Streams streams) {
         BuiltinCommand func = builtinCommands.get(args[0]);
+        PrintStream systemOut = System.out;
+        InputStream systemIn = System.in;
         System.setOut((PrintStream) streams.in);
         System.setIn(streams.out);
         if(func == null)
@@ -91,7 +93,11 @@ public class Context {
             t.start();
             return 0;
         }
-        return func.execute(args);
+
+        int retCode = func.execute(args);
+        System.setOut(systemOut);
+        System.setIn(systemIn);
+        return retCode;
     }
 
 

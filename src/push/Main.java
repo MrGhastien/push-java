@@ -6,6 +6,7 @@ import java.util.List;
 import push.commands.Command;
 import push.commands.interpreter.Indexer;
 import push.commands.interpreter.Parser;
+import push.commands.interpreter.Streams;
 import push.commands.interpreter.Token;
 
 public class Main {
@@ -38,7 +39,9 @@ public class Main {
             }
             System.out.println();
             Command cmd = Parser.parse(tokens);
+            Parser.substituteAll(cmd);
             System.out.println(cmd.toString());
+            cmd.execute(new Streams(System.in, System.out, ProcessBuilder.Redirect.INHERIT, ProcessBuilder.Redirect.INHERIT));
             /*
             if (str.contains("="))
             {

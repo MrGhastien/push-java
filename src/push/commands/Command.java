@@ -26,5 +26,4 @@ public interface Command {
      */
     void setAsync(boolean async);
 
-
 }

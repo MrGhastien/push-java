@@ -31,11 +31,6 @@ public class PipelineCommand implements Command, CommandList {
     }
 
     @Override
-    public Command getLastCommand() {
-        return subCommands.getLast();
-    }
-
-    @Override
     public int getCommandCount() {
         return subCommands.size();
     }
@@ -64,4 +59,10 @@ public class PipelineCommand implements Command, CommandList {
             builder.append(" &");
         return builder.toString();
     }
+
+    @Override
+    public Command[] subCommands() {
+        return subCommands.toArray(new Command[0]);
+    }
+
 }

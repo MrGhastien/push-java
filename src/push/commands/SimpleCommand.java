@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SimpleCommand implements Command {
 
-    private final List<Lazy<String>> args;
+    private final List<String> args;
     private boolean async;
 
     public SimpleCommand() {
@@ -20,12 +20,12 @@ public class SimpleCommand implements Command {
 
     @Override
     public int execute(Streams streams) {
-        String[] finalArgs = getArgs();
+        String[] finalArgs = getArgs().toArray(new String[0]);
         Context ctx = Main.context();
         return ctx.run(finalArgs, isAsync(),streams);
     }
 
-    public void addArg(Lazy<String> arg) {
+    public void addArg(String arg) {
         args.add(arg);
     }
 
@@ -33,14 +33,8 @@ public class SimpleCommand implements Command {
         return args.size();
     }
 
-    private String[] getArgs() {
-        LinkedList<String> collection = new LinkedList<>();
-
-        for(Lazy<String> maybeLazy : args) {
-            collection.add(maybeLazy.get());
-        }
-
-        return collection.toArray(new String[0]);
+    public List<String> getArgs() {
+        return args;
     }
 
     @Override
@@ -58,7 +52,7 @@ public class SimpleCommand implements Command {
         if(argCount() == 0)
             str = "";
         else
-            str = args.get(0).get();
+            str = args.get(0);
 
         if(async)
             str += " &";

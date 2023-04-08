@@ -53,8 +53,8 @@ public class LogicListCommand implements Command, CommandList {
     }
 
     @Override
-    public Command getLastCommand() {
-        return subCommands.getLast();
+    public Command[] subCommands() {
+        return subCommands.toArray(new Command[0]);
     }
 
     @Override
