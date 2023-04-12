@@ -3,6 +3,8 @@ package push;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class Builtins {
@@ -19,39 +21,11 @@ public class Builtins {
     }
 
     public static int rm(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
-        if(input[2].contains("$"))
-        {
-            String[] env = input[2].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[2] = var.value;
-        }
-
         if(input.length > 3) {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
         if (!Objects.equals(input[1], "-r") && f.isDirectory()) {
             System.out.println("This is a directory use -r to delete it");
             return -1;
@@ -66,25 +40,11 @@ public class Builtins {
     }
 
     public static int mkdir(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
         if(input.length > 2) {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
         if (f.mkdir()) {
             System.out.println("Directory created");
             return 0;
@@ -95,67 +55,30 @@ public class Builtins {
     }
 
     public static int cd(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
         if(input.length > 2) {
             System.err.println("Too many arguments");
             return -1;
         }
-        Context ctx = Main.context();;
-        if(input[1] == "..")
-        {
-            File f = new File(ctx.currPath);
-            ctx.currPath = f.getParent();
-        }
-        else
-        {
-            File f = new File(ctx.currPath + "\\" + input[1]);
-            if(f.isDirectory())
-            {
-                ctx.currPath = ctx.currPath + "\\" + input[1];
-                return 0;
-            }
-            else
-            {
-                System.out.println("This is not a directory");
-                return -1;
-            }
+        Context ctx = Main.context();
+        Path pwd = Paths.get(ctx.currPath);
+        pwd = pwd.resolve(input[1]).normalize();
+        File target = pwd.toFile();
+        if (target.isDirectory()) {
+            ctx.currPath = pwd.toString();
+            System.setProperty("user.dir", ctx.currPath);
+        } else {
+            System.out.println("This is not a directory");
+            return -1;
         }
         return 0;
     }
 
     public int touch(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
         if(input.length > 2) {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
         if (f.exists())
             f.setLastModified(System.currentTimeMillis());
         try {
@@ -179,18 +102,7 @@ public class Builtins {
             System.err.println("Too many arguments");
             return -1;
         }
-
-        if(input[1].startsWith("$")){
-            String[] var = input[1].split("\\$");
-            Variable variable = Main.context().envVariables.get(var[1]);
-            if (variable == null) {
-                System.err.println("Variable not found");
-                return -1;
-            }
-            System.out.println(Main.context().envVariables.get(var[1]).value);
-        }
-        else
-            System.out.println(input[1]);
+        System.out.println(input[1]);
         return 0;
     }
 
@@ -204,38 +116,12 @@ public class Builtins {
     }
 
     public static int mv(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-        if(input[2].contains("$"))
-        {
-            String[] env = input[2].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[2] = var.value;
-        }
         if(input.length > 3) {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
-        File f2 = new File(Main.context().currPath + "\\" + input[2]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
+        File f2 = new File(Main.context().currPath + Platform.pathSeparator() + input[2]);
         try {
             if ((Files.copy(f.toPath(), f2.toPath()) != null)) {
                 rm(new String[]{"rm", input[1]});
@@ -251,40 +137,12 @@ public class Builtins {
     }
 
     public static int cp(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
-        if(input[2].contains("$"))
-        {
-            String[] env = input[2].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[2] = var.value;
-        }
-
         if(input.length > 3) {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
-        File f2 = new File(Main.context().currPath + "\\" + input[2]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
+        File f2 = new File(Main.context().currPath + Platform.pathSeparator() + input[2]);
         try {
             if (Files.copy(f.toPath(), f2.toPath()) != null) {
                 System.out.println("File copied");
@@ -299,20 +157,6 @@ public class Builtins {
     }
 
     public int sleep(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
         if(input.length > 2) {
             System.err.println("Too many arguments");
             return -1;
@@ -326,20 +170,6 @@ public class Builtins {
     }
 
     public static int cat(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
-
         if(input.length > 2) {
             System.err.println("Too many arguments");
             return -1;
@@ -364,19 +194,6 @@ public class Builtins {
     }
 
     public static int unset(String[] input) {
-        if(input[1].contains("$"))
-        {
-            String[] env = input[1].split("\\$");
-            String envName = env[1];
-            Variable var = Main.context().envVariables.get(envName);
-
-            if(var == null)
-            {
-                System.out.println("This environment variable doesn't exist");
-                return -1;
-            }
-            input[1] = var.value;
-        }
         if(!Main.context().envVariables.containsKey(input[1])) {
             System.err.println("Variable not found");
             return -1;

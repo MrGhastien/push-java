@@ -19,8 +19,6 @@ public class Main {
         registerBuiltins();
 
         String str;
-        String[] splitStr;
-        int retCode;
         while(!ctx.shouldExit) {
             System.err.flush();
             prompt();
