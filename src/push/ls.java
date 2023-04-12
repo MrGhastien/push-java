@@ -89,7 +89,6 @@ public class ls implements BuiltinCommand {
             if (digitNb > max) {
                 max = digitNb;
             }
-            System.out.println("max = " + max);
 
         }
 

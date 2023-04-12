@@ -15,7 +15,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         ctx = new Context(System.in, args);
-        ctx.currPath = System.getProperty("user.home");
 
         registerBuiltins();
 

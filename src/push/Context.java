@@ -41,6 +41,7 @@ public class Context {
         this.builtinCommands = new HashMap<>();
         childProcesses = new HashMap<>();
         previousRetCode = 0;
+        currPath = System.getProperty("user.dir");
         this.params = Collections.unmodifiableList(Arrays.asList(params));
     }
 
