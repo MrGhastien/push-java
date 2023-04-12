@@ -83,8 +83,8 @@ public class Context {
         BuiltinCommand func = builtinCommands.get(args[0]);
         PrintStream systemOut = System.out;
         InputStream systemIn = System.in;
-        System.setOut((PrintStream) streams.in);
-        System.setIn(streams.out);
+        System.setOut((PrintStream) streams.out);
+        System.setIn(streams.in);
         if(func == null)
             return Integer.MIN_VALUE;
         if(async) {
@@ -97,6 +97,22 @@ public class Context {
         int retCode = func.execute(args);
         System.setOut(systemOut);
         System.setIn(systemIn);
+        if (systemOut != streams.out) {
+            try {
+                streams.out.close();
+            } catch (IOException e) {
+                System.err.println("push: Error when closing redirected output stream :");
+                e.printStackTrace();
+            }
+        }
+        if (systemIn != streams.in) {
+            try {
+                streams.out.close();
+            } catch (IOException e) {
+                System.err.println("push: Error when closing redirected input stream :");
+                e.printStackTrace();
+            }
+        }
         return retCode;
     }
 
@@ -105,15 +121,17 @@ public class Context {
     public int runProgram(String[] args, boolean async, Streams streams) {
 
         ProcessBuilder pb = new ProcessBuilder(args);
-        pb.inheritIO();
+        pb.redirectOutput(streams.outputRedirect);
+        pb.redirectInput(streams.inputRedirect);
+        pb.redirectErrorStream(true);
         pb.directory(new File(Main.context().currPath));
 
         Process process = null;
         int retCode = Integer.MIN_VALUE;
         try {
             process = pb.start();
-            streams.out = process.getInputStream();
-            streams.in = process.getOutputStream();
+            streams.in = process.getInputStream();
+            streams.out = process.getOutputStream();
             lastProcId = process.pid();
             childProcesses.put(process.pid(), process);
             if(!async) {

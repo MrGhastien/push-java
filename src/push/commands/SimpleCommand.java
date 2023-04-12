@@ -1,12 +1,11 @@
 package push.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import push.Context;
 import push.Main;
 import push.commands.interpreter.Streams;
-import push.util.Lazy;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class SimpleCommand implements Command {
 
@@ -14,7 +13,7 @@ public class SimpleCommand implements Command {
     private boolean async;
 
     public SimpleCommand() {
-        this.args = new LinkedList<>();
+        this.args = new ArrayList<>();
         async = false;
     }
 
@@ -48,14 +47,19 @@ public class SimpleCommand implements Command {
 
     @Override
     public String toString() {
-        String str;
+        StringBuilder str = new StringBuilder();
         if(argCount() == 0)
-            str = "";
-        else
-            str = args.get(0);
+            str.append("");
+        else {
+            str.append(args.get(0));
+            for (int i = 1; i < argCount(); i++) {
+                str.append(' ');
+                str.append(args.get(i));
+            }
+        }
 
         if(async)
-            str += " &";
-        return str;
+            str.append(" &");
+        return str.toString();
     }
 }

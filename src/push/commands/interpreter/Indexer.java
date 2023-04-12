@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+
 public class Indexer {
 
     public static List<Token> index(String rawCmd) {
@@ -27,30 +28,34 @@ public class Indexer {
             }
 
             if(c == '\\') { // RULE 4.a
-
+                char next = rawCmd.charAt(++i);
+                if (next != '\n') {
+                    tokenBuilder.append(c);
+                    tokenBuilder.append(next);
+                }
                 continue;
             }
 
             if (c == '\'') { // RULE 4.b
-                i = handleSingleQuotes(rawCmd, tokenBuilder, i);
+                i = Collecter.collectSingleQuotes(rawCmd, tokenBuilder, i);
                 continue;
             }
 
             if (c == '"') { // RULE 4.c
-                i = handleDoubleQuotes(rawCmd, tokenBuilder, i);
+                i = Collecter.collectDoubleQuotes(rawCmd, tokenBuilder, i);
                 continue;
             }
           
 
             if (c == '$') {
                 marker = Marker.WORD;
-                i = handleExpansion(rawCmd, tokenBuilder, i);
+                i = Collecter.collectExpansion(rawCmd, tokenBuilder, i);
                 continue;
             }
 
             if (c == '`') {
                 marker = Marker.WORD;
-                i = collectUpToDelimiter(rawCmd, tokenBuilder, i);
+                i = Collecter.collectUpToDelimiter(rawCmd, tokenBuilder, i);
                 continue;
             }
 
@@ -94,149 +99,15 @@ public class Indexer {
         argBuilder.setLength(0);
     }
 
-    private static int handleExpansion(String rawCmd, StringBuilder argBuilder, int i) {
-        argBuilder.append(rawCmd.charAt(i));
-        char c = rawCmd.charAt(i + 1);
-        if(c == '{') {
-            i = collectUpToDelimiter(rawCmd, argBuilder, i + 1);
-        } else if(c == '(') {
-            if(rawCmd.charAt(i + 2) == '(') {
-                //handleArithExpans(rawCmd, argBuilder, i + 3);
-                throw new UnsupportedOperationException("fuck");
-            } else
-                i = collectUpToDelimiter(rawCmd, argBuilder, i + 1);
-        }
-        return i;
-    }
-
-    private static int collectUpToDelimiter(String rawCmd, StringBuilder tokenBuilder, int i) {
-        char delimiter = rawCmd.charAt(i);
-        tokenBuilder.append(delimiter);
-        i++;
-        char c;
-        int delimiterLevel = 1;
-        for(; i < rawCmd.length(); i++) {
-            c = rawCmd.charAt(i);
-
-            if(c == '$') {
-                i = handleExpansion(rawCmd, tokenBuilder, i);
-                tokenBuilder.append(c);
-                continue;
-            }
-            if (c == '`') {
-                i = collectUpToDelimiter(rawCmd, tokenBuilder, i);
-                tokenBuilder.append(c);
-                continue;
-            }
-
-            if(c == '\\') {
-                tokenBuilder.append(c);
-                tokenBuilder.append(rawCmd.charAt(i + 1));
-                i++;
-                continue;
-            }
-
-            if(c == delimiter) {
-                delimiterLevel++;
-                tokenBuilder.append(c);
-                continue;
-            }
-
-            if(c == getOpposite(delimiter)) {
-                delimiterLevel--;
-                tokenBuilder.append(c);
-                if(delimiterLevel == 0)
-                    break;
-            }
-
-            if(c == '\'') {
-                i = handleSingleQuotes(rawCmd, tokenBuilder, i);
-                tokenBuilder.append(c);
-                continue;
-            }
-
-            if(c == '"') {
-                i = handleDoubleQuotes(rawCmd, tokenBuilder, i);
-                tokenBuilder.append(c);
-                continue;
-            }
-            tokenBuilder.append(c);
-        }
-        if(delimiterLevel != 0)
-            throw new IllegalArgumentException("Unmatched delimiter '" + delimiter + "'");
-        return i;
-    }
-
-    public static int handleSingleQuotes(String rawCmd, StringBuilder tokenBuilder, int i) {
-        i++;
-        char c;
-        boolean quoteMatched = false;
-        for(; i < rawCmd.length(); i++) {
-            c = rawCmd.charAt(i);
-            tokenBuilder.append(c);
-            if (c == '\'') {
-                quoteMatched = true;
-                break;
-            }
-            continue;
-        }
-        if(!quoteMatched)
-            throw new IllegalArgumentException("Mismatched single quote !");
-        return i;
-    }
-
-    public static int handleDoubleQuotes(String rawCmd, StringBuilder tokenBuilder, int i) {
-        i++;
-        char c;
-        boolean quoteMatched = false;
-        boolean escapeNext = false;
-        for(; i < rawCmd.length(); i++) {
-            c = rawCmd.charAt(i);
-            if(escapeNext) {
-                if(c != '$' && c != '`' && c != '"' && c != '\\')
-                    tokenBuilder.append('\\');
-                tokenBuilder.append(c);
-                escapeNext = false;
-            }
-            if (c == '\\') {
-                escapeNext = true;
-                continue;
-            }
-
-            if (c == '$') {
-                i = handleExpansion(rawCmd, tokenBuilder, i);
-                continue;
-            }
-
-            if (c == '`') {
-                i = collectUpToDelimiter(rawCmd, tokenBuilder, i);
-                continue;
-            }
-
-            tokenBuilder.append(c);
-            if(c == '"') {
-                quoteMatched = true;
-                break;
-            }
-        }
-
-        if(!quoteMatched)
-            throw new IllegalArgumentException("Mismatched single quote !");
-        return i;
-
-    }
-
-    public static char getOpposite(char delimiter) {
-        return switch(delimiter) {
-        case '{' -> '}';
-        case '(' -> ')';
-        default -> delimiter;
-        };
-    }
-
     public static void recognize(LinkedList<Token> tokens, StringBuilder tokenBuilder, Marker marker) {
         String symbol = tokenBuilder.toString();
         Token last = tokens.isEmpty() ? null : tokens.getLast();
+
+        if (marker == null) {
+            TokenIdentifier id = TokenIdentifier.getOperator(symbol);
+            marker = id == null ? Marker.WORD : Marker.OPERATOR;
+            System.err.println("Warning : symbol with no marker encountered.");
+        }
 
         if (marker == Marker.WORD) {
             TokenIdentifier reservedId = TokenIdentifier.getReserved(symbol);
@@ -265,16 +136,20 @@ public class Indexer {
                 if (last != null && last.getIdentifier() != TokenIdentifier.WORD)
                     throw new IllegalArgumentException("Unexpected token near redirect operator '" + symbol + "'");
 
-                ((Token.SpecialToken) last).setIdentifier(TokenIdentifier.IO_NUMBER);
+                boolean isNumber = true;
+                for (int i = 0; i < last.toString().length(); i++) {
+                    char c = last.toString().charAt(i);
+                    if (!Character.isDigit(c)) {
+                        isNumber = false;
+                    }
+                }
+                if (isNumber) {
+                    ((Token.SpecialToken) last).setIdentifier(TokenIdentifier.IO_NUMBER);
+                }
             }
             tokens.add(id.create(symbol));
             return;
         }
-
-        System.err.println("Warning : symbol with no marker encountered.");
-        TokenIdentifier id = TokenIdentifier.getOperator(symbol);
-        recognize(tokens, tokenBuilder, id == null ? Marker.WORD : Marker.OPERATOR);
-            
     }
 
     private static boolean isValidName(String symbol) {

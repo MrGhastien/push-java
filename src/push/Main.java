@@ -28,20 +28,17 @@ public class Main {
             str = ctx.getReader().readLine();
 
 
-            List<Token> tokens;
-            tokens = Indexer.index(str);
-            for (Token t : tokens) {
-                System.out.print("'" + t.toString() + "' ");
+            Command cmd = null;
+            try {
+                List<Token> tokens = Indexer.index(str);
+                cmd = Parser.parse(tokens);
+                Parser.substituteAll(cmd);
+            } catch (Exception e) {
+                System.err.println("push: Error when parsing command : ");
+                e.printStackTrace();
+                continue;
             }
-            System.out.println();
-            for (Token t : tokens) {
-                System.out.print("'" + t.getIdentifier().name() + "' ");
-            }
-            System.out.println();
-            Command cmd = Parser.parse(tokens);
-            Parser.substituteAll(cmd);
-            System.out.println(cmd.toString());
-            cmd.execute(new Streams(System.in, System.out, ProcessBuilder.Redirect.INHERIT, ProcessBuilder.Redirect.INHERIT));
+            cmd.execute(new Streams(System.out, System.in, ProcessBuilder.Redirect.INHERIT, ProcessBuilder.Redirect.INHERIT));
             /*
             if (str.contains("="))
             {

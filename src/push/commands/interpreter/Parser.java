@@ -3,9 +3,9 @@ package push.commands.interpreter;
 import push.Main;
 import push.Variable;
 import push.commands.*;
+import push.commands.interpreter.Collecter.ExpansionHandler;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,17 +44,63 @@ public final class Parser {
         ((LogicListCommand) previous).addCommand(cmd, or);
     }
 
+    private static void handleRedirection(LinkedList<Command> commandStack, Token currentToken, Token nextToken) {
+        Command cmd = commandStack.getLast();
+        if (nextToken.getIdentifier() != WORD)
+            throw new IllegalStateException("ALGO MAL FAIT -1/20");
+        RedirectedCommand redCmd;
+        if (commandStack.size() > 1 && commandStack.get(commandStack.size() - 2) instanceof RedirectedCommand r) {
+            redCmd = r;
+        } else {
+            redCmd = new RedirectedCommand();
+            commandStack.add(commandStack.size() - 1, redCmd);
+            redCmd.addCommand(cmd);
+        }
+        switch (currentToken.getIdentifier()) {
+            case GREAT -> {
+                File file = new File(nextToken.toString());
+                redCmd.setOutputTarget(file);
+            }
+            case LESS -> {
+                File file = new File(nextToken.toString());
+                redCmd.setInputTarget(file);
+            }
+            case LESSGREAT -> {
+                File file = new File(nextToken.toString());
+                redCmd.setInputTarget(file);
+                redCmd.setOutputTarget(file);
+            }
+            case DGREAT -> {
+                File file = new File(nextToken.toString());
+                redCmd.setOutputTarget(file);
+                redCmd.setAppend(true);
+            }
+            case CLOBBER -> {
+                File file = new File(nextToken.toString());
+                redCmd.setOutputTarget(file);
+                redCmd.setForceOverride(true);
+            }
+            default -> {
+                throw new IllegalArgumentException("Improper use of the 'handleRedirection' function !");
+            }
+        }
+    }
+    
     //ls a b || echo test | cat abc ; echo gaming | shutdown ftg &
     public static Command parse(List<Token> tokens) {
         if (tokens.isEmpty()) {
             return null;
         }
-        Token previousToken = null;
         LinkedList<Command> commandStack = new LinkedList<>();
         for (int i = 0; i < tokens.size(); i++) {
             if (commandStack.size() == 0 || !(commandStack.getLast() instanceof SimpleCommand))
                 commandStack.addLast(new SimpleCommand());
             Token token = tokens.get(i);
+            if (token.getIdentifier().isRedirect()) {
+                handleRedirection(commandStack, token, tokens.get(i + 1));
+                i++;
+                continue;
+            }
             switch (token.getIdentifier()) {
                 case SEMI -> {
                     combineToSeq(commandStack, false);
@@ -87,26 +133,16 @@ public final class Parser {
                         throw new IllegalStateException("ALGO MAL FAIT 0/20");
                     }
                 }
-                case GREAT -> {
-                    Command cmd = commandStack.getLast();
-                    Token nextToken = tokens.get(i + 1);
-                    if(nextToken.getIdentifier() != WORD)
-                        throw new IllegalStateException("ALGO MAL FAIT -1/20");
-                    File file = new File(nextToken.toString());
-                    if (commandStack.get(commandStack.size() - 2) instanceof RedirectedCommand redCmd) {
-                        redCmd.setOutputTarget(file);
-                    } else {
-                        RedirectedCommand redCmd = new RedirectedCommand(file, null);
-                        redCmd.setOutputTarget(file);
-                        commandStack.add(commandStack.size() - 2, redCmd);
-                    }
-                    i++;
+                default -> {
+                    throw new IllegalArgumentException();
                 }
             }
         }
         if (commandStack.size() > 1) {
             while (commandStack.size() > 1 && !(commandStack.getLast() instanceof SeqListCommand)) {
                 Command cmd = commandStack.removeLast();
+                if(commandStack.getLast() instanceof RedirectedCommand)
+                    continue;
                 ((CommandList) commandStack.getLast()).addCommand(cmd);
             }
         }
@@ -114,60 +150,108 @@ public final class Parser {
     }
 
     public static String substitute(String expression) {
-        //TODO : First case not done
-        if (!expression.startsWith("$"))
-            return expression;
-        expression = expression.substring(1);
 
-        if (expression.startsWith("((")) {
-            expression = expression.substring(2, expression.length() - 1);
-            return "";
-        }
+        StringBuilder resultBuilder = new StringBuilder();
+        
+        char c;
+        ExpansionHandler handler = (str, type) -> {
+            handleExpansion(str, type, resultBuilder);
+        };
+        for(int i = 0; i < expression.length(); i++) {
+            c = expression.charAt(i);
 
-        else {
-            if (expression.startsWith("(") || expression.startsWith("`")) {
-                expression = expression.substring(1, expression.length() - 1);
-                Command command = parse(Indexer.index(expression));
-                Streams streams = new Streams();
-                ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-                streams.in = new PrintStream(byteOut);
-                streams.out = new ByteArrayInputStream(new byte[0]);
-                command.execute(streams);
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(byteOut.toByteArray())));
-                StringBuilder text = new StringBuilder();
-                try {
-                    int res;
-                    while ((res = in.read()) != -1) {
-                        char c = (char) res;
-                        if (c != '\n' && c != '\r')
-                            text.append(c);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+            switch (c) {
+                case '\'' -> {
+                    i = Collecter.collectSingleQuotes(expression, resultBuilder, i);
                 }
-                return text.toString();
+                case '"' -> {
+                    i = Collecter.collectDoubleQuotes(expression, resultBuilder, i, handler);
+                }
+                case '$' -> {
+                    StringBuilder builder = new StringBuilder();
+                    i = Collecter.collectExpansion(expression, builder, i, handler);
+                }
+                default -> {
+                    resultBuilder.append(c);
+                }
             }
+        }
+        return resultBuilder.toString();
+    }
 
-            else if (expression.startsWith("{")) {
-                expression = expression.substring(1, expression.length() - 1);
-                Variable variable = Main.context().envVariables.get(expression);
-                if (variable == null)
-                    return "";
-                return variable.get();
-            } else {
-                expression = expression.substring(1);
-                Variable variable = Main.context().envVariables.get(expression);
-                if (variable == null)
-                    return "";
-                return variable.get();
+    private static void handleExpansion(String str, Collecter.ExpansionType type, StringBuilder builder) {
+        switch (type) {
+            case CMD -> {
+                builder.append(substituteCommand(str, false));
+            }
+            case PARAM -> {
+                Variable v = Main.context().envVariables.get(str);
+                if(v != null)
+                    builder.append(v.get());
+            }
+            case ARITH -> {
+                throw new UnsupportedOperationException("Not implemented");
             }
         }
     }
 
+    private static String substituteCommand(String cmd, boolean backquote) {
+        Command command = parse(Indexer.index(cmd));
+        Streams streams = new Streams();
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        streams.out = new PrintStream(byteOut);
+        streams.in = new ByteArrayInputStream(new byte[0]);
+        command.execute(streams);
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(new ByteArrayInputStream(byteOut.toByteArray())));
+        StringBuilder builder = new StringBuilder();
+        try {
+            int res;
+            while ((res = in.read()) != -1) {
+                char c = (char) res;
+                if (c != '\n' && c != '\r')
+                    builder.append(c);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return builder.toString();
+    }
+
     public static String[] fieldSplit(String input) {
         Variable ifs = Main.context().envVariables.get("IFS");
-        return input.split(ifs != null ? ifs.get() : " ");
+        String delimiter = ifs == null ? " " : ifs.get();
+        LinkedList<String> strings = new LinkedList<>();
+        StringBuilder current = new StringBuilder();
+        StringBuilder buffer = new StringBuilder();
+        char c;
+        for(int i = 0; i < input.length(); i++) {
+            c = input.charAt(i);
+            buffer.append(c);
+            if(c == '\\') {
+                i = Collecter.collectEscape(input, buffer, i);
+                i++;
+                continue;
+            }
+            if(c == '\'' || c == '"') {
+                i = Collecter.collectUpToDelimiter(input, buffer, i);
+                continue;
+
+            }
+
+            while(buffer.length() > delimiter.length()) {
+                current.append(buffer.charAt(0));
+                buffer.deleteCharAt(0);
+            }
+            if(buffer.toString().equals(delimiter)) {
+                strings.add(current.toString());
+                current.setLength(0);
+                buffer.setLength(0);
+            }
+        }
+        current.append(buffer);
+        strings.add(current.toString());
+        return strings.toArray(new String[0]);
     }
 
     public static String removeQuotes(String input) {
