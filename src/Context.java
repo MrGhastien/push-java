@@ -16,7 +16,7 @@ public class Context {
     /**
      * Holds the environment variables of the shell.
      */
-    public Map<String, Variable> envVariables = new HashMap<>();
+    public Map<String, Variable> envVariables;
 
 
     /**
@@ -32,6 +32,11 @@ public class Context {
         reader = new BufferedReader(new InputStreamReader(in));
         this.builtinCommands = new HashMap<>();
         childProcesses = new HashMap<>();
+        envVariables = new HashMap<>();
+        Map<String, String> env = System.getenv();
+        for(String key : env.keySet()) {
+            envVariables.put(key, new Variable(key, env.get(key), false));
+        }
     }
 
     public BufferedReader getReader() {
