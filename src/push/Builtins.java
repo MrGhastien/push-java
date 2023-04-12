@@ -1,3 +1,5 @@
+package push;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -342,7 +344,7 @@ public class Builtins {
             System.err.println("Too many arguments");
             return -1;
         }
-        File f = new File(Main.context().currPath + "\\" + input[1]);
+        File f = new File(Main.context().currPath + Platform.pathSeparator() + input[1]);
         try {
             System.out.println(Files.readString(f.toPath()));
         } catch (IOException e) {

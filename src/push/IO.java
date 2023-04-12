@@ -1,3 +1,5 @@
+package push;
+
 public class IO {
 
     public static void printlnErr(String msg) {

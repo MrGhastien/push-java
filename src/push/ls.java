@@ -1,9 +1,10 @@
+package push;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 
-public class ls implements Command {
+public class ls implements BuiltinCommand {
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -79,10 +80,11 @@ public class ls implements Command {
 
         Context ctx = Main.context();
         File f = new File(ctx.currPath);
+        String[] docList = f.list();
         int max = -1;
-        for (String s : f.list()) {
+        for (String s : docList) {
 
-            File currF = new File(ctx.currPath + "\\" + s);
+            File currF = new File(ctx.currPath + Platform.pathSeparator() + s);
             int digitNb = digitNb(currF.length());
             if (digitNb > max) {
                 max = digitNb;
@@ -94,14 +96,14 @@ public class ls implements Command {
         spacing(max - 3);
         System.out.println("Execute" + " " + "Read" + "    " + "Write" + " " + "Name");
 
-        String[] docList = f.list();
+
         if(docList == null) {
             System.out.println("No files in this directory");
             return -1;
         }
-        for (String s : f.list()) {
+        for (String s : docList) {
 
-            File currF = new File(ctx.currPath + "\\" + s);
+            File currF = new File(ctx.currPath + Platform.pathSeparator() + s);
             String dateStr = dateFormat(currF.lastModified());
             int digitNb = digitNb(currF.length());
 
@@ -120,6 +122,7 @@ public class ls implements Command {
             }
 
         }
+        Platform.pathSeparator();
         return 0;
     }
 }
