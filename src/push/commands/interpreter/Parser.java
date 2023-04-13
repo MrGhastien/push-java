@@ -6,6 +6,8 @@ import push.commands.*;
 import push.commands.interpreter.Collecter.ExpansionHandler;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -56,27 +58,24 @@ public final class Parser {
             commandStack.add(commandStack.size() - 1, redCmd);
             redCmd.addCommand(cmd);
         }
+        Path pwd = Paths.get(Main.context().currPath);
+        File file = pwd.resolve(nextToken.toString()).toFile();
         switch (currentToken.getIdentifier()) {
             case GREAT -> {
-                File file = new File(nextToken.toString());
                 redCmd.setOutputTarget(file);
             }
             case LESS -> {
-                File file = new File(nextToken.toString());
                 redCmd.setInputTarget(file);
             }
             case LESSGREAT -> {
-                File file = new File(nextToken.toString());
                 redCmd.setInputTarget(file);
                 redCmd.setOutputTarget(file);
             }
             case DGREAT -> {
-                File file = new File(nextToken.toString());
                 redCmd.setOutputTarget(file);
                 redCmd.setAppend(true);
             }
             case CLOBBER -> {
-                File file = new File(nextToken.toString());
                 redCmd.setOutputTarget(file);
                 redCmd.setForceOverride(true);
             }

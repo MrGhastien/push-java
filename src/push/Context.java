@@ -84,18 +84,25 @@ public class Context {
         BuiltinCommand func = builtinCommands.get(args[0]);
         PrintStream systemOut = System.out;
         InputStream systemIn = System.in;
+        int retCode;
         System.setOut((PrintStream) streams.out);
         System.setIn(streams.in);
-        if(func == null)
-            return Integer.MIN_VALUE;
-        if(async) {
+        if (func == null) {
+            resetStreams(systemOut, systemIn, streams);
+            retCode = Integer.MIN_VALUE;
+        } else if(async) {
             Thread t = new Thread(() -> func.execute(args));
             threads.put(threads.size()+1,t);
             t.start();
-            return 0;
+            retCode = 0;
+        } else {
+            retCode = func.execute(args);
         }
+        resetStreams(systemOut, systemIn, streams);
+        return retCode;
+    }
 
-        int retCode = func.execute(args);
+    private void resetStreams(PrintStream systemOut, InputStream systemIn, Streams streams) {
         System.setOut(systemOut);
         System.setIn(systemIn);
         if (systemOut != streams.out) {
@@ -114,7 +121,6 @@ public class Context {
                 e.printStackTrace();
             }
         }
-        return retCode;
     }
 
 

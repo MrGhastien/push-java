@@ -43,7 +43,7 @@ public class RedirectedCommand implements CommandList {
             try {
                 out = new PrintStream(new FileOutputStream(outputTarget, append));
             } catch (IOException e) {
-                System.err.println("push: Could not redirect output to file '" + outputTarget.getPath() + "'");
+                System.err.println("push: Could not redirect output to file '" + outputTarget.getAbsolutePath() + "'");
                 e.printStackTrace();
             }
         } else {
@@ -57,15 +57,15 @@ public class RedirectedCommand implements CommandList {
             try {
                 in = new FileInputStream(inputTarget);
             } catch (IOException e) {
-                System.err.println("push: Could not redirect input from file '" + inputTarget.getPath() + "'");
+                System.err.println("push: Could not redirect input from file '" + inputTarget.getAbsolutePath() + "'");
                 e.printStackTrace();
             }
         }
 
         streams = new Streams(out,
                               in,
-                              outRedirect,
-                              inRedirect);
+                              inRedirect,
+                              outRedirect);
         return cmd.execute(streams);
     }
 
