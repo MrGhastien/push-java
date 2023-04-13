@@ -19,12 +19,17 @@ public class LogicListCommand implements Command, CommandList {
 
     @Override
     public int execute(Streams streams) {
+        if (isAsync()) {
+            Thread thread = new Thread(() -> this.execute(streams));
+            thread.start();
+            return 0;
+        }
         int retCode = subCommands.get(0).execute(streams);
         for (int i = 1; i < subCommands.size(); i++) {
             // Execute next command only if :
             // previousCode = 0 & operator = AND (false in 'orOperators' list)
             // previousCode != 0 & operator = OR (true in 'orOperators' list)
-            if ((retCode == 0) ^ orOperators.get(i - 1))
+            if ((retCode == 0) == orOperators.get(i - 1))
                 continue;
 
             retCode = subCommands.get(i).execute(streams);

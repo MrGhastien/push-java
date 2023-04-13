@@ -154,6 +154,8 @@ public class Context {
         } catch (InterruptedException e) {
             IO.printlnErr("Program \"" + args[0] + "\" [" + process.pid() + "] was interrupted.");
         }
+        streams.in = System.in;
+        streams.out = System.out;
         return retCode;
     }
 

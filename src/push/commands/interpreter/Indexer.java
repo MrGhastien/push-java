@@ -91,10 +91,6 @@ public class Indexer {
         if(argBuilder.length() == 0)
             return;
 
-        if(marker == null) {
-            System.err.println("Warning : symbol with no marker encountered : '" + argBuilder.toString() + "'");
-        }
-
         recognize(tokens, argBuilder, marker);
         argBuilder.setLength(0);
     }
@@ -106,7 +102,6 @@ public class Indexer {
         if (marker == null) {
             TokenIdentifier id = TokenIdentifier.getOperator(symbol);
             marker = id == null ? Marker.WORD : Marker.OPERATOR;
-            System.err.println("Warning : symbol with no marker encountered.");
         }
 
         if (marker == Marker.WORD) {
