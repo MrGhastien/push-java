@@ -43,6 +43,10 @@ public class Context {
         previousRetCode = 0;
         currPath = System.getProperty("user.dir");
         this.params = Collections.unmodifiableList(Arrays.asList(params));
+        Map<String, String> env = System.getenv();
+        for(String key : env.keySet()) {
+            envVariables.put(key, new Variable(key, env.get(key), false));
+        }
     }
 
     public int getPreviousRetCode() {
